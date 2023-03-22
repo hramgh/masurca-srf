@@ -1,0 +1,36 @@
+Bootstrap: docker
+From: alpine:3.17.2
+Stage: build
+
+%post
+  ## Download build prerequisites
+  apk add build-base curl
+  
+  ## Build
+  cd /opt
+  curl https://github.com/alekseyzimin/masurca/releases/download/v4.1.0/MaSuRCA-4.1.0.tar.gz | tar xz
+  cd MaSuRCA-4.1.0
+  #./install.sh
+
+# Bootstrap: docker
+# From: alpine:3.17.2
+# Stage: final
+
+# %labels
+# Maintainer @plantandfood.co.nz
+# Version 
+
+# %files from build
+  # /opt/URL/bin/tool /usr/local/bin/
+
+# %runscript
+  # exec masurca "$@"
+
+# ==OR==
+
+# if [ -x /usr/local/bin/$APPTAINER_NAME ]; then
+    # exec $APPTAINER_NAME "$@"
+# else
+  # /bin/echo -e "This Apptainer image cannot provide a single entrypoint. Please use \"apptainer exec $APPTAINER_NAME <cmd>\", where <cmd> is one of the following:\n"
+  # exec ls /usr/local/bin
+# fi
