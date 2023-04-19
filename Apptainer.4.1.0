@@ -1,36 +1,41 @@
 Bootstrap: docker
-From: alpine:3.17.2
-Stage: build
+From: ubuntu:jammy
+
+%labels
+Maintainer marty.hickman@plantandfood.co.nz
+Version 4.1.0
+
+%environment
+  PATH=/opt/MaSuRCA-4.1.0/bin:$PATH
+  export PATH
+  export LANG=en_NZ.UTF-8
+  export LC_ALL=en_NZ.UTF-8
+  export LANGUAGE=en_NZ.UTF-8
 
 %post
   ## Download build prerequisites
-  apk add build-base curl
-  
+  apt-get update && apt-get install -y \
+    curl build-essential libboost-dev libbz2-dev wget zlib1g-dev locales libenv-path-perl
+  locale-gen en_NZ.UTF-8
+
+
   ## Build
   cd /opt
-  curl https://github.com/alekseyzimin/masurca/releases/download/v4.1.0/MaSuRCA-4.1.0.tar.gz | tar xz
+  curl -s -L https://github.com/alekseyzimin/masurca/releases/download/v4.1.0/MaSuRCA-4.1.0.tar.gz | tar xz
   cd MaSuRCA-4.1.0
-  #./install.sh
+  # Fix the install script from exiting with a copy error
+  sed -i 's/cp -a ..\/Flye /cd /' install.sh
+  ./install.sh
 
-# Bootstrap: docker
-# From: alpine:3.17.2
-# Stage: final
+  ## Do some cleanup
+  apt-get -y remove --purge build-essential
+  apt-get -y clean all 
+  apt-get -y autoremove --purge
 
-# %labels
-# Maintainer @plantandfood.co.nz
-# Version 
-
-# %files from build
-  # /opt/URL/bin/tool /usr/local/bin/
-
-# %runscript
-  # exec masurca "$@"
-
-# ==OR==
-
-# if [ -x /usr/local/bin/$APPTAINER_NAME ]; then
-    # exec $APPTAINER_NAME "$@"
-# else
-  # /bin/echo -e "This Apptainer image cannot provide a single entrypoint. Please use \"apptainer exec $APPTAINER_NAME <cmd>\", where <cmd> is one of the following:\n"
-  # exec ls /usr/local/bin
-# fi
+%runscript
+ if [ -x /opt/MaSuRCA-4.1.0/bin/$APPTAINER_NAME ]; then
+    exec $APPTAINER_NAME "$@"
+ else
+    /bin/echo -e "This Apptainer image cannot provide a single entrypoint. Please use \"apptainer exec $APPTAINER_NAME <cmd>\", where <cmd> is one of the following:\n"
+    exec ls /opt/MaSuRCA-4.1.0/bin
+ fi
